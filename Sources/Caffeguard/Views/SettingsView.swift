@@ -28,7 +28,7 @@ struct SettingsView: View {
                     }
                 }
             } footer: {
-                Text("Caffeguard arms while caffeinate is running and your Mac has had no input for this long.")
+                Text("Caffeguard arms while something keeps your Mac awake, like caffeinate or Amphetamine, and it has had no input for this long.")
             }
 
             Section {

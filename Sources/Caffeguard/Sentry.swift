@@ -2,16 +2,16 @@ import AVFoundation
 import Observation
 import os
 
-/// Arms when the Mac is caffeinated and idle, watches the chosen camera, and raises the
+/// Arms when something keeps the Mac awake and it is idle, watches the chosen camera, and raises the
 /// alert when someone faces it. It keeps watching behind the alert, so everyone who sits
 /// down is photographed, until the owner unlocks the alert.
 @Observable
 final class Sentry {
     enum Status {
-        case setupNeeded, paused, waitingForCaffeinate, waitingForIdle, cameraUnavailable, watching, intruded
+        case setupNeeded, paused, waitingForKeepAwake, waitingForIdle, cameraUnavailable, watching, intruded
     }
 
-    private(set) var status = Status.waitingForCaffeinate
+    private(set) var status = Status.waitingForKeepAwake
     var isEnabled = true {
         didSet { tick() }
     }
@@ -43,14 +43,14 @@ final class Sentry {
         guard let cameraID = UserDefaults.standard.string(forKey: Preference.cameraID) else {
             return stopWatching(.setupNeeded)
         }
-        let caffeinated = SystemActivity.isCaffeinated
+        let keptAwake = SystemActivity.isKeptAwake
         if watcher != nil {
-            // Typing does not disarm, because that is what an intruder does. Stopping caffeinate
-            // does, unless the alert is up: then only unlocking it does (a `caffeinate -t` may expire).
-            if !caffeinated && !alert.isShowing { stopWatching(.waitingForCaffeinate) }
+            // Typing does not disarm, because that is what an intruder does. Letting the Mac sleep
+            // again does, unless the alert is up: then only unlocking it does (a timer may expire).
+            if !keptAwake && !alert.isShowing { stopWatching(.waitingForKeepAwake) }
             return
         }
-        guard caffeinated else { status = .waitingForCaffeinate; return }
+        guard keptAwake else { status = .waitingForKeepAwake; return }
         guard SystemActivity.idleTime >= idleDelay else { status = .waitingForIdle; return }
         arm(cameraID: cameraID)
     }
@@ -120,7 +120,7 @@ extension Sentry.Status {
         switch self {
         case .setupNeeded: "Choose a Camera in Settings"
         case .paused: "Paused"
-        case .waitingForCaffeinate: "Waiting for caffeinate"
+        case .waitingForKeepAwake: "Waiting for Caffeination"
         case .waitingForIdle: "Arms When You’re Away"
         case .cameraUnavailable: "Camera Unavailable"
         case .watching: "Watching"
@@ -131,7 +131,7 @@ extension Sentry.Status {
     var symbol: String {
         switch self {
         case .setupNeeded, .paused, .cameraUnavailable: "shield.slash"
-        case .waitingForCaffeinate, .waitingForIdle: "shield"
+        case .waitingForKeepAwake, .waitingForIdle: "shield"
         case .watching: "shield.fill"
         case .intruded: "exclamationmark.shield.fill"
         }
