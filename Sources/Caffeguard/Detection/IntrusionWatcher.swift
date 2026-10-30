@@ -11,6 +11,7 @@ nonisolated final class IntrusionWatcher: NSObject, AVCaptureVideoDataOutputSamp
     static let samplesPerSecond = 2.0
 
     private let session = AVCaptureSession()
+    private let device: AVCaptureDevice
     private let queue = DispatchQueue(label: "Caffeguard.camera")
     private let context = CIContext()
     private let onIntrusion: @Sendable (Data) -> Void
@@ -20,6 +21,7 @@ nonisolated final class IntrusionWatcher: NSObject, AVCaptureVideoDataOutputSamp
 
     init(device: AVCaptureDevice, onIntrusion: @escaping @Sendable (Data) -> Void) throws {
         self.onIntrusion = onIntrusion
+        self.device = device
         super.init()
         let input = try AVCaptureDeviceInput(device: device)
         let output = AVCaptureVideoDataOutput()
@@ -29,8 +31,26 @@ nonisolated final class IntrusionWatcher: NSObject, AVCaptureVideoDataOutputSamp
         session.addOutput(output)
     }
 
-    func start() { queue.async { self.session.startRunning() } }
+    func start() {
+        queue.async {
+            self.session.startRunning()
+            // After startRunning, because starting applies the session preset's frame rate.
+            self.slowDownCamera()
+        }
+    }
     func stop() { queue.async { self.session.stopRunning() } }
+
+    /// Only `samplesPerSecond` frames are looked at, so ask the camera for as few as it can
+    /// deliver: every extra frame is work for nothing. Twice the sample rate leaves headroom for
+    /// timing jitter; most webcams cannot go below 15 fps anyway.
+    private func slowDownCamera() {
+        let slowest = device.activeFormat.videoSupportedFrameRateRanges.map(\.minFrameRate).min() ?? 30
+        let duration = CMTime(seconds: 1 / max(slowest, Self.samplesPerSecond * 2), preferredTimescale: 600)
+        guard (try? device.lockForConfiguration()) != nil else { return }
+        device.activeVideoMinFrameDuration = duration
+        device.activeVideoMaxFrameDuration = duration
+        device.unlockForConfiguration()
+    }
 
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         let time = sampleBuffer.presentationTimeStamp

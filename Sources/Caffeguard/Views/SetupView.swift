@@ -1,4 +1,5 @@
 import AVFoundation
+import ServiceManagement
 import SwiftUI
 
 /// First-launch window: choose the camera Caffeguard will always use, and grant access to it.
@@ -7,6 +8,7 @@ struct SetupView: View {
     @Environment(\.dismissWindow) private var dismissWindow
     @State private var selection = Cameras.available.first?.uniqueID
     @State private var accessDenied = false
+    @State private var openAtLogin = true
 
     var body: some View {
         VStack(spacing: 20) {
@@ -17,7 +19,7 @@ struct SetupView: View {
             VStack(spacing: 8) {
                 Text("Welcome to Caffeguard")
                     .font(.title.bold())
-                Text("When your Mac is caffeinated and you step away, Caffeguard photographs anyone who sits down at it.")
+                Text("When an app keeps your Mac awake and you step away, Caffeguard photographs anyone who sits down at it.")
                     .foregroundStyle(.secondary)
             }
             .multilineTextAlignment(.center)
@@ -31,11 +33,12 @@ struct SetupView: View {
                 Text("Choose the camera to use")
             }
 
+            Toggle("Open Caffeguard at login", isOn: $openAtLogin)
+
             if accessDenied {
                 VStack(spacing: 4) {
                     Text("Caffeguard needs access to the camera.")
-                    Link("Open Privacy & Security Settings",
-                         destination: URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera")!)
+                    Link("Open Privacy & Security Settings", destination: Cameras.privacySettings)
                 }
                 .font(.callout)
             }
@@ -57,6 +60,7 @@ struct SetupView: View {
                 return
             }
             cameraID = selection
+            if openAtLogin { try? SMAppService.mainApp.register() }
             dismissWindow()
         }
     }

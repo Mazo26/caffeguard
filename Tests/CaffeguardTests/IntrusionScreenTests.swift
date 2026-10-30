@@ -14,36 +14,45 @@ struct IntrusionScreenTests {
     @Test func newInstallUsesTheRedScreenAndBothVerificationTriggers() throws {
         try withDefaults { defaults in
             let configuration = IntrusionScreenConfiguration(defaults: defaults)
-            #expect(configuration.style == .redWarning)
-            #expect(configuration.displayMessage == IntrusionScreenConfiguration.defaultMessage)
+            #expect(configuration.theme.id == Theme.all[0].id)
+            #expect(configuration.displayMessage == Theme.all[0].message)
             #expect(configuration.unlockTrigger == .doubleClickOrAnyKey)
         }
     }
 
-    @Test(arguments: IntrusionScreenStyle.allCases, IntrusionUnlockTrigger.allCases)
-    func savedChoicesAndCustomMessageAreLoaded(style: IntrusionScreenStyle, trigger: IntrusionUnlockTrigger) throws {
-        try withDefaults { defaults in
-            defaults.set(style.rawValue, forKey: Preference.intrusionScreenStyle)
-            defaults.set("Private Mac. Please contact the owner.", forKey: Preference.intrusionMessage)
-            defaults.set(trigger.rawValue, forKey: Preference.intrusionUnlockTrigger)
+    @Test(arguments: IntrusionUnlockTrigger.allCases)
+    func savedChoicesAndCustomMessageAreLoaded(trigger: IntrusionUnlockTrigger) throws {
+        for theme in Theme.all {
+            try withDefaults { defaults in
+                defaults.set(theme.id, forKey: Preference.theme)
+                defaults.set("Private Mac. Please contact the owner.", forKey: Preference.intrusionMessage)
+                defaults.set(trigger.rawValue, forKey: Preference.intrusionUnlockTrigger)
 
-            let configuration = IntrusionScreenConfiguration(defaults: defaults)
-            #expect(configuration.style == style)
-            #expect(configuration.displayMessage == "Private Mac. Please contact the owner.")
-            #expect(configuration.unlockTrigger == trigger)
+                let configuration = IntrusionScreenConfiguration(defaults: defaults)
+                #expect(configuration.theme.id == theme.id)
+                #expect(configuration.displayMessage == "Private Mac. Please contact the owner.")
+                #expect(configuration.unlockTrigger == trigger)
+            }
+        }
+    }
+
+    @Test func aBlankMessageKeepsEachThemesOwnWords() {
+        for theme in Theme.all {
+            let configuration = IntrusionScreenConfiguration(themeID: theme.id, message: " \n\t ")
+            #expect(configuration.displayMessage == theme.message)
         }
     }
 
     @Test func unknownSavedChoicesAndBlankMessageHaveUsableDefaults() throws {
         try withDefaults { defaults in
-            defaults.set("unknown-style", forKey: Preference.intrusionScreenStyle)
+            defaults.set("unknown-style", forKey: Preference.theme)
             defaults.set(" \n\t ", forKey: Preference.intrusionMessage)
             defaults.set("unknown-trigger", forKey: Preference.intrusionUnlockTrigger)
 
             let configuration = IntrusionScreenConfiguration(defaults: defaults)
-            #expect(configuration.style == .redWarning)
+            #expect(configuration.theme.id == Theme.all[0].id)
             #expect(configuration.unlockTrigger == .doubleClickOrAnyKey)
-            #expect(configuration.displayMessage == IntrusionScreenConfiguration.defaultMessage)
+            #expect(configuration.displayMessage == Theme.all[0].message)
         }
     }
 

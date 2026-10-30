@@ -1,19 +1,5 @@
 import Foundation
 
-enum IntrusionScreenStyle: String, CaseIterable, Identifiable {
-    case redWarning, darkWarning, minimal
-
-    var id: Self { self }
-
-    var title: String {
-        switch self {
-        case .redWarning: "Red Warning"
-        case .darkWarning: "Dark Warning"
-        case .minimal: "Minimal"
-        }
-    }
-}
-
 enum IntrusionUnlockTrigger: String, CaseIterable, Identifiable {
     case doubleClick, anyKey, doubleClickOrAnyKey
 
@@ -48,23 +34,22 @@ enum IntrusionUnlockTrigger: String, CaseIterable, Identifiable {
 }
 
 struct IntrusionScreenConfiguration {
-    static let defaultMessage = "This Mac is protected. A photo has been taken."
-
-    var style: IntrusionScreenStyle = .redWarning
-    var message = defaultMessage
+    var themeID = Theme.all[0].id
+    var message = ""
     var unlockTrigger: IntrusionUnlockTrigger = .doubleClickOrAnyKey
+
+    var theme: Theme { Theme.all.first { $0.id == themeID } ?? Theme.all[0] }
 
     var displayMessage: String {
         let trimmed = message.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? Self.defaultMessage : trimmed
+        return trimmed.isEmpty ? theme.message : trimmed
     }
 }
 
 extension IntrusionScreenConfiguration {
     init(defaults: UserDefaults) {
-        style = defaults.string(forKey: Preference.intrusionScreenStyle)
-            .flatMap(IntrusionScreenStyle.init(rawValue:)) ?? .redWarning
-        message = defaults.string(forKey: Preference.intrusionMessage) ?? Self.defaultMessage
+        themeID = defaults.string(forKey: Preference.theme) ?? Theme.all[0].id
+        message = defaults.string(forKey: Preference.intrusionMessage) ?? ""
         unlockTrigger = defaults.string(forKey: Preference.intrusionUnlockTrigger)
             .flatMap(IntrusionUnlockTrigger.init(rawValue:)) ?? .doubleClickOrAnyKey
     }
