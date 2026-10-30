@@ -30,7 +30,7 @@ That's it.
 3. After 5 minutes (you can change this) of nobody touching the Mac, the shield in the menu bar fills in. It is
    watching now.
 4. If someone sits down and looks at the screen, they get a red screen and you get their
-   photo in `~/Pictures/Caffeguard`.
+   photo in `~/Pictures/Caffeguard`, or the folder you choose in **Settings… → General**.
 5. The red screen only goes away with your fingerprint (Touch ID) or your Mac password.
    Until then it keeps watching: if that person runs off and someone else sits down later,
    you get a photo of them too.
@@ -51,6 +51,9 @@ Things to know:
   also play an alarm and lock the Mac.
 - The menu shows when it last caught someone, with a little photo. Click it to open the photo.
 - Turn on **Open at Login** so it is always running.
+- Choose a photo destination in **Settings… → General**. Changing the folder only affects
+  new photos; existing photos stay where they are. **Show Photos in Finder** opens the
+  selected folder, and the last photo is read from there when the app starts.
 - The camera is off unless it is watching. It never records video.
 
 ## iMessage alerts
