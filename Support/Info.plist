@@ -8,6 +8,8 @@
 	<string>Caffeguard</string>
 	<key>CFBundleExecutable</key>
 	<string>Caffeguard</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.hamzaplojovic.Caffeguard</string>
 	<key>CFBundleName</key>

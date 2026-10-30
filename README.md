@@ -70,4 +70,22 @@ scripts/dmg.sh           # build build/Caffeguard-<version>.dmg
 scripts/release.sh       # tag and publish a GitHub release with the DMG
 ```
 
-The version number lives in `Support/Info.plist`.
+The version number lives in `Support/Info.plist`. The icon and the DMG background are drawn
+by `swift scripts/artwork.swift`.
+
+## Releasing
+
+Releases are signed with a Developer ID and notarized by Apple, so the DMG opens without
+warnings. One-time setup on the Mac that builds releases:
+
+1. Xcode → Settings → Accounts → your team → **Manage Certificates…** → **+** →
+   **Developer ID Application**.
+2. Create an app-specific password at [account.apple.com](https://account.apple.com), then:
+
+   ```sh
+   xcrun notarytool store-credentials caffeguard \
+       --apple-id you@example.com --team-id YOURTEAMID --password <app-specific password>
+   ```
+
+After that, bump the version in `Support/Info.plist`, commit, push, and run
+`scripts/release.sh`.
