@@ -27,10 +27,10 @@ That's it.
    reasons, like a video call or music, count too, because the Mac stays unlocked then
    as well.
 2. Walk away.
-3. After 5 minutes of nobody touching the Mac, the shield in the menu bar fills in. It is
+3. After 5 minutes (you can change this) of nobody touching the Mac, the shield in the menu bar fills in. It is
    watching now.
 4. If someone sits down and looks at the screen, they get a red screen and you get their
-   photo in `~/Pictures/Caffeguard`, or the folder you choose in **Settings…**.
+   photo in `~/Pictures/Caffeguard`, or the folder you choose in **Settings… → General**.
 5. The red screen only goes away with your fingerprint (Touch ID) or your Mac password.
    Until then it keeps watching: if that person runs off and someone else sits down later,
    you get a photo of them too.
@@ -44,10 +44,23 @@ Things to know:
 - One person sitting there is one photo. A new photo needs the seat to be empty for 30
   seconds first.
 - After you unlock the red screen, it waits another quiet period before it watches again.
-- Change the camera, waiting time, or photo destination folder in **Settings…** from the
-  menu bar shield. Changing the folder only affects new photos; existing photos stay
-  where they are. **Show Photos in Finder** opens your selected folder.
+- Change the camera or the waiting time in **Settings…** from the menu bar shield. The
+  waiting time can be anything from 1 second up, under **Custom**.
+- **Settings → Intrusion Screen** has 20 themes for the red screen (Terminal, Crime Scene,
+  Judgy Cat, Royal Decree and more), and you can put your own picture behind it. It can
+  also play an alarm and lock the Mac.
+- The menu shows when it last caught someone, with a little photo. Click it to open the photo.
+- Turn on **Open at Login** so it is always running.
+- Choose a photo destination in **Settings… → General**. Changing the folder only affects
+  new photos; existing photos stay where they are. **Show Photos in Finder** opens the
+  selected folder, and the last photo is read from there when the app starts.
 - The camera is off unless it is watching. It never records video.
+
+## iMessage alerts
+
+Caffeguard can text you each photo through this Mac's Messages app. In **Settings → Alerts**,
+turn on **Text me a photo of each intrusion**, type your phone number or Apple ID, and click
+**Send Test Message**. The first time, macOS asks to let Caffeguard control Messages; say yes.
 
 ## Email alerts
 
@@ -56,7 +69,7 @@ they delete the file.
 
 1. Turn on 2-Step Verification for your Google account, then
    [create an app password](https://myaccount.google.com/apppasswords). It is 16 letters.
-2. Open **Settings…** from the menu bar shield, turn on **Email me a photo of each
+2. Open **Settings… → Alerts** from the menu bar shield, turn on **Email me a photo of each
    intrusion**, and type your Gmail address and the app password.
 3. Click **Send Test Email** to check it works.
 

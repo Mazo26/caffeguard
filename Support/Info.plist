@@ -17,15 +17,17 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.5</string>
+	<string>1.0.7</string>
 	<key>CFBundleVersion</key>
-	<string>5</string>
+	<string>7</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>15.0</string>
 	<key>LSUIElement</key>
 	<true/>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Caffeguard sends intrusion photos through Messages, only when you turn on iMessage alerts.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Caffeguard watches through your camera only while your Mac is caffeinated and you are away, to photograph anyone who uses it.</string>
 </dict>

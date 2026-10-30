@@ -25,6 +25,18 @@ enum Evidence {
         return url
     }
 
+    /// The newest photo, so the menu can show it even after Caffeguard restarts.
+    static var latest: URL? {
+        latest(defaults: .standard)
+    }
+
+    static func latest(defaults: UserDefaults) -> URL? {
+        let folder = folder(defaults: defaults)
+        let photos = (try? FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)) ?? []
+        // File names start with the date and time, so name order is time order.
+        return photos.filter { $0.pathExtension == "jpg" }.max { $0.lastPathComponent < $1.lastPathComponent }
+    }
+
     static func showInFinder() {
         let folder = folder()
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)

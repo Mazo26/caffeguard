@@ -5,5 +5,8 @@
 	<!-- The hardened runtime that notarization requires blocks the camera without this. -->
 	<key>com.apple.security.device.camera</key>
 	<true/>
+	<!-- iMessage alerts drive the Messages app through Apple events. -->
+	<key>com.apple.security.automation.apple-events</key>
+	<true/>
 </dict>
 </plist>

@@ -34,4 +34,18 @@ struct EvidenceTests {
             #expect(try Data(contentsOf: saved) == jpeg)
         }
     }
+
+    @Test func theLastPhotoIsReadFromTheSelectedFolder() throws {
+        try withDefaults { defaults in
+            let destination = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+            defer { try? FileManager.default.removeItem(at: destination) }
+            defaults.set(destination.path, forKey: Preference.photoFolderPath)
+            #expect(Evidence.latest(defaults: defaults) == nil)
+            try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+            for name in ["Intrusion 2026-10-29 at 12.00.00.jpg", "Intrusion 2026-10-30 at 12.00.00.jpg", "notes.txt"] {
+                try Data().write(to: destination.appending(path: name))
+            }
+            #expect(Evidence.latest(defaults: defaults)?.lastPathComponent == "Intrusion 2026-10-30 at 12.00.00.jpg")
+        }
+    }
 }
