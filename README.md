@@ -2,11 +2,11 @@
 
 # Caffeguard
 
-You leave your Mac on with `caffeinate` so it does not go to sleep. You walk away. Someone
-sits down at it.
+You keep your Mac awake with `caffeinate`, Amphetamine, Raycast or any other keep-awake
+app, so it does not go to sleep. You walk away. Someone sits down at it.
 
 Caffeguard catches them. It lives in your menu bar as a little shield. When your Mac is
-caffeinated and nobody has touched it for a few minutes, Caffeguard starts watching through
+kept awake and nobody has touched it for a few minutes, Caffeguard starts watching through
 your webcam. If someone looks at the camera, it takes their photo, saves it, and turns every
 screen bright red.
 
@@ -22,7 +22,10 @@ That's it.
 
 ## How to use it
 
-1. Start `caffeinate` in Terminal, like you normally would.
+1. Keep your Mac awake the way you normally do: `caffeinate`, Amphetamine, Raycast,
+   anything. Caffeguard notices on its own. Apps that keep the Mac awake for their own
+   reasons, like a video call or music, count too, because the Mac stays unlocked then
+   as well.
 2. Walk away.
 3. After 5 minutes of nobody touching the Mac, the shield in the menu bar fills in. It is
    watching now.
@@ -34,9 +37,10 @@ That's it.
 
 Things to know:
 
-- Typing does not turn it off, because an intruder would type too. Stopping `caffeinate`
-  turns it off, and so does unchecking **Enabled** in the menu.
-- It will catch you too when you come back. Uncheck **Enabled** first, or stop `caffeinate`.
+- Typing does not turn it off, because an intruder would type too. Letting the Mac sleep
+  again turns it off, and so does unchecking **Enabled** in the menu.
+- It will catch you too when you come back. Unlock the red screen with your fingerprint,
+  or uncheck **Enabled** before you leave the Mac awake and walk off.
 - One person sitting there is one photo. A new photo needs the seat to be empty for 30
   seconds first.
 - After you unlock the red screen, it waits another quiet period before it watches again.
