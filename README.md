@@ -16,9 +16,7 @@ That's it.
 
 1. Download the `.dmg` file from the [latest release](../../releases/latest).
 2. Open it and drag Caffeguard into Applications.
-3. Open Caffeguard. macOS will say it can't check the app, because it is not signed by a
-   paid Apple developer account. Go to **System Settings → Privacy & Security**, scroll
-   down, and click **Open Anyway**. You only do this once.
+3. Open Caffeguard. It is signed and notarized by Apple, so it opens like any other app.
 4. Pick the camera you want it to use and allow camera access. iPhone cameras are never
    offered.
 
