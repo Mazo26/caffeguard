@@ -14,7 +14,7 @@ That's it.
 
 ## How to install
 
-1. Download `Caffeguard-1.0.0.dmg` from the
+1. Download `the `.dmg` file` from the
    [latest release](../../releases/latest).
 2. Open it and drag Caffeguard into Applications.
 3. Open Caffeguard. macOS will say it can't check the app, because it is not signed by a
@@ -31,13 +31,18 @@ That's it.
    watching now.
 4. If someone sits down and looks at the screen, they get a red screen and you get their
    photo in `~/Pictures/Caffeguard`.
+5. The red screen only goes away with your fingerprint (Touch ID) or your Mac password.
+   Until then it keeps watching: if that person runs off and someone else sits down later,
+   you get a photo of them too.
 
 Things to know:
 
 - Typing does not turn it off, because an intruder would type too. Stopping `caffeinate`
   turns it off, and so does unchecking **Enabled** in the menu.
 - It will catch you too when you come back. Uncheck **Enabled** first, or stop `caffeinate`.
-- After it catches someone, it waits another quiet period before it watches again.
+- One person sitting there is one photo. A new photo needs the seat to be empty for 30
+  seconds first.
+- After you unlock the red screen, it waits another quiet period before it watches again.
 - Change the camera or the waiting time in **Settings…** from the menu bar shield.
 - The camera is off unless it is watching. It never records video and nothing leaves your Mac.
 

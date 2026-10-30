@@ -2,8 +2,9 @@ import AVFoundation
 import Observation
 import os
 
-/// Arms when the Mac is caffeinated and idle, watches the chosen camera,
-/// and raises the alert when someone faces it.
+/// Arms when the Mac is caffeinated and idle, watches the chosen camera, and raises the
+/// alert when someone faces it. It keeps watching behind the alert, so everyone who sits
+/// down is photographed, until the owner unlocks the alert.
 @Observable
 final class Sentry {
     enum Status {
@@ -16,7 +17,6 @@ final class Sentry {
     }
 
     private var watcher: IntrusionWatcher?
-    private var rearmAt = Date.distantPast
     private let alert = IntrusionAlert()
     private let logger = Logger(subsystem: "com.hamzaplojovic.Caffeguard", category: "Sentry")
 
@@ -26,6 +26,7 @@ final class Sentry {
 
     init() {
         UserDefaults.standard.register(defaults: [Preference.idleMinutes: Preference.defaultIdleMinutes])
+        alert.onUnlock = { [weak self] in self?.stopWatching(.waitingForIdle) }
         Task {
             while true {
                 tick()
@@ -41,11 +42,11 @@ final class Sentry {
         }
         let caffeinated = SystemActivity.isCaffeinated
         if watcher != nil {
-            // Typing does not disarm, because that is what an intruder does. Stopping caffeinate does.
-            if !caffeinated { stopWatching(.waitingForCaffeinate) }
+            // Typing does not disarm, because that is what an intruder does. Stopping caffeinate
+            // does, unless the alert is up: then only unlocking it does (a `caffeinate -t` may expire).
+            if !caffeinated && !alert.isShowing { stopWatching(.waitingForCaffeinate) }
             return
         }
-        guard Date.now >= rearmAt else { status = .intruded; return }
         guard caffeinated else { status = .waitingForCaffeinate; return }
         guard SystemActivity.idleTime >= idleDelay else { status = .waitingForIdle; return }
         arm(cameraID: cameraID)
@@ -72,9 +73,7 @@ final class Sentry {
     }
 
     private func intruded(_ jpeg: Data) {
-        stopWatching(.intruded)
-        // One intruder, one alert: wait a full idle period before arming again.
-        rearmAt = .now + idleDelay
+        status = .intruded
         do {
             let url = try Evidence.save(jpeg)
             logger.notice("Intrusion photographed: \(url.path, privacy: .public)")

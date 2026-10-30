@@ -1,23 +1,22 @@
 import AVFoundation
 import CoreImage
 
-/// Samples a camera a couple of times per second and reports the first frame in which
-/// someone has faced it for `framesNeeded` samples in a row, as an unannotated JPEG.
+/// Samples a camera a couple of times per second and reports every intrusion that
+/// `IntrusionRule` confirms, as an unannotated JPEG of the confirming frame.
 ///
 /// `@unchecked Sendable`: every mutable property is only touched on `queue`.
 nonisolated final class IntrusionWatcher: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, @unchecked Sendable {
     struct CameraUnavailable: Error {}
 
     static let samplesPerSecond = 2.0
-    static let framesNeeded = 3
 
     private let session = AVCaptureSession()
     private let queue = DispatchQueue(label: "Caffeguard.camera")
     private let context = CIContext()
     private let onIntrusion: @Sendable (Data) -> Void
-    private var streak = Streak(needed: framesNeeded)
+    // 3 frames is 1.5 seconds of facing the camera; 60 frames is 30 seconds with nobody there.
+    private var rule = IntrusionRule(framesToConfirm: 3, framesToClear: 60)
     private var lastSample = CMTime.invalid
-    private var reported = false
 
     init(device: AVCaptureDevice, onIntrusion: @escaping @Sendable (Data) -> Void) throws {
         self.onIntrusion = onIntrusion
@@ -35,14 +34,12 @@ nonisolated final class IntrusionWatcher: NSObject, AVCaptureVideoDataOutputSamp
 
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         let time = sampleBuffer.presentationTimeStamp
-        guard !reported,
-              !lastSample.isValid || (time - lastSample).seconds >= 1 / Self.samplesPerSecond,
+        guard !lastSample.isValid || (time - lastSample).seconds >= 1 / Self.samplesPerSecond,
               let frame = sampleBuffer.imageBuffer
         else { return }
         lastSample = time
 
-        guard streak.record(FaceDetector.someoneIsFacing(frame)) else { return }
-        reported = true
+        guard rule.record(FaceDetector.someoneIsFacing(frame)) else { return }
         let image = CIImage(cvPixelBuffer: frame)
         let colorSpace = image.colorSpace ?? CGColorSpace(name: CGColorSpace.sRGB)!
         if let jpeg = context.jpegRepresentation(of: image, colorSpace: colorSpace) {
