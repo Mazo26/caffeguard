@@ -1,0 +1,10 @@
+.DS_Store
+build/
+.build/
+.swiftpm/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+
+# Evidence photos from the old prototype
+shots/
