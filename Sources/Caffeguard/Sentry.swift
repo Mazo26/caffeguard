@@ -27,6 +27,9 @@ final class Sentry {
     init() {
         UserDefaults.standard.register(defaults: [Preference.idleMinutes: Preference.defaultIdleMinutes])
         alert.onUnlock = { [weak self] in self?.stopWatching(.waitingForIdle) }
+        // Read once at launch: if macOS asks to allow keychain access after an update,
+        // the owner is here to answer, not hidden behind the red screen.
+        _ = Keychain.appPassword
         Task {
             while true {
                 tick()
@@ -74,13 +77,35 @@ final class Sentry {
 
     private func intruded(_ jpeg: Data) {
         status = .intruded
+        let filename: String
         do {
             let url = try Evidence.save(jpeg)
+            filename = url.lastPathComponent
             logger.notice("Intrusion photographed: \(url.path, privacy: .public)")
         } catch {
+            filename = "Intrusion.jpg"
             logger.error("Could not save the intrusion photo: \(error)")
         }
         alert.show()
+        emailIfEnabled(jpeg, filename: filename)
+    }
+
+    private func emailIfEnabled(_ jpeg: Data, filename: String) {
+        let defaults = UserDefaults.standard
+        guard defaults.bool(forKey: Preference.emailAlerts),
+              let address = defaults.string(forKey: Preference.gmailAddress), !address.isEmpty,
+              let password = Keychain.appPassword
+        else { return }
+
+        let email = Email.intrusion(to: address, photo: jpeg, filename: filename, macName: Host.current().localizedName ?? "your Mac")
+        Task { [logger] in
+            do {
+                try await Gmail.send(email, from: address, appPassword: password)
+                logger.notice("Emailed \(filename, privacy: .public)")
+            } catch {
+                logger.error("Could not email \(filename, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            }
+        }
     }
 
     private func stopWatching(_ newStatus: Status) {

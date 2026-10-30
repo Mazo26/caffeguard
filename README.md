@@ -14,8 +14,7 @@ That's it.
 
 ## How to install
 
-1. Download `the `.dmg` file` from the
-   [latest release](../../releases/latest).
+1. Download the `.dmg` file from the [latest release](../../releases/latest).
 2. Open it and drag Caffeguard into Applications.
 3. Open Caffeguard. macOS will say it can't check the app, because it is not signed by a
    paid Apple developer account. Go to **System Settings → Privacy & Security**, scroll
@@ -44,7 +43,21 @@ Things to know:
   seconds first.
 - After you unlock the red screen, it waits another quiet period before it watches again.
 - Change the camera or the waiting time in **Settings…** from the menu bar shield.
-- The camera is off unless it is watching. It never records video and nothing leaves your Mac.
+- The camera is off unless it is watching. It never records video.
+
+## Email alerts
+
+Caffeguard can email you each photo the moment it takes it, so you see who it was even if
+they delete the file.
+
+1. Turn on 2-Step Verification for your Google account, then
+   [create an app password](https://myaccount.google.com/apppasswords). It is 16 letters.
+2. Open **Settings…** from the menu bar shield, turn on **Email me a photo of each
+   intrusion**, and type your Gmail address and the app password.
+3. Click **Send Test Email** to check it works.
+
+The email goes from your Gmail address to itself. The app password is kept in your Mac's
+keychain. Nothing is sent anywhere unless you turn this on.
 
 ## Build it yourself
 
