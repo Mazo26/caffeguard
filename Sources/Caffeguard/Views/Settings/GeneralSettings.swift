@@ -1,15 +1,31 @@
 import AVFoundation
+import ServiceManagement
 import SwiftUI
 
 struct GeneralSettings: View {
     @AppStorage(Preference.cameraID) private var cameraID: String?
     @AppStorage(Preference.idleSeconds) private var idleSeconds = Preference.defaultIdleSeconds
     @State private var isCustom = false
+    @State private var opensAtLogin = SMAppService.mainApp.status
 
     private static let custom = -1
 
     var body: some View {
         Form {
+            Section {
+                Toggle("Open at Login", isOn: Binding {
+                    opensAtLogin == .enabled
+                } set: { on in
+                    try? on ? SMAppService.mainApp.register() : SMAppService.mainApp.unregister()
+                    opensAtLogin = SMAppService.mainApp.status
+                })
+            } footer: {
+                if opensAtLogin == .requiresApproval {
+                    Button("Allow Caffeguard in Login Items…", action: SMAppService.openSystemSettingsLoginItems)
+                        .buttonStyle(.link)
+                }
+            }
+
             Section {
                 CameraPicker(selection: $cameraID)
                     // Covers choosing a camera here after skipping the welcome window.

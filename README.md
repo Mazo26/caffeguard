@@ -47,8 +47,17 @@ Things to know:
 - Change the camera or the waiting time in **Settings…** from the menu bar shield. The
   waiting time can be anything from 1 second up, under **Custom**.
 - **Settings → Intrusion Screen** has 20 themes for the red screen (Terminal, Crime Scene,
-  Judgy Cat, Royal Decree and more), and you can put your own picture behind it.
+  Judgy Cat, Royal Decree and more), and you can put your own picture behind it. It can
+  also play an alarm and lock the Mac.
+- The menu shows when it last caught someone, with a little photo. Click it to open the photo.
+- Turn on **Open at Login** so it is always running.
 - The camera is off unless it is watching. It never records video.
+
+## iMessage alerts
+
+Caffeguard can text you each photo through this Mac's Messages app. In **Settings → Alerts**,
+turn on **Text me a photo of each intrusion**, type your phone number or Apple ID, and click
+**Send Test Message**. The first time, macOS asks to let Caffeguard control Messages; say yes.
 
 ## Email alerts
 
@@ -57,7 +66,7 @@ they delete the file.
 
 1. Turn on 2-Step Verification for your Google account, then
    [create an app password](https://myaccount.google.com/apppasswords). It is 16 letters.
-2. Open **Settings…** from the menu bar shield, turn on **Email me a photo of each
+2. Open **Settings… → Alerts** from the menu bar shield, turn on **Email me a photo of each
    intrusion**, and type your Gmail address and the app password.
 3. Click **Send Test Email** to check it works.
 

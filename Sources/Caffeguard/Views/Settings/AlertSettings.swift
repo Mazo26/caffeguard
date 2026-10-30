@@ -6,6 +6,8 @@ struct AlertSettings: View {
     @State private var wallpaper = Wallpaper.image
     @State private var isChoosingWallpaper = false
     @State private var wallpaperError: String?
+    @AppStorage(Preference.alarmSound) private var alarmSound = false
+    @AppStorage(Preference.lockScreen) private var lockScreen = false
 
     private var theme: Theme { Theme.all.first { $0.id == themeID } ?? Theme.all[0] }
 
@@ -41,6 +43,15 @@ struct AlertSettings: View {
                 }
             } footer: {
                 Text(wallpaperError ?? "Shown behind the theme’s text, tinted in its colors so the text stays readable.")
+            }
+
+            Section {
+                Toggle("Play an alarm sound", isOn: $alarmSound)
+                Toggle("Lock the Mac", isOn: $lockScreen)
+            } header: {
+                Text("When Someone Is Caught")
+            } footer: {
+                Text("The alarm plays until the screen is unlocked. Locking shows the login window 3 seconds after the photo; logging back in also dismisses the intrusion screen.")
             }
         }
         .formStyle(.grouped)

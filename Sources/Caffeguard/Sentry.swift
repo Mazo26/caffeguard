@@ -1,3 +1,4 @@
+import AppKit
 import AVFoundation
 import Observation
 import os
@@ -8,10 +9,11 @@ import os
 @Observable
 final class Sentry {
     enum Status {
-        case setupNeeded, paused, waitingForKeepAwake, waitingForIdle, cameraUnavailable, watching, intruded
+        case setupNeeded, paused, cameraAccessNeeded, waitingForKeepAwake, waitingForIdle, cameraUnavailable, watching, intruded
     }
 
     private(set) var status = Status.waitingForKeepAwake
+    private(set) var lastPhoto = Evidence.latest
     var isEnabled = true {
         didSet { tick() }
     }
@@ -34,6 +36,11 @@ final class Sentry {
         }
         defaults.register(defaults: [Preference.idleSeconds: Preference.defaultIdleSeconds])
         alert.onUnlock = { [weak self] in self?.stopWatching(.waitingForIdle) }
+        // A Caffeguard that silently cannot see is worse than a prompt while the owner is here.
+        if defaults.string(forKey: Preference.cameraID) != nil,
+           AVCaptureDevice.authorizationStatus(for: .video) == .notDetermined {
+            Task { _ = await AVCaptureDevice.requestAccess(for: .video) }
+        }
         // Read once at launch: if macOS asks to allow keychain access after an update,
         // the owner is here to answer, not hidden behind the red screen.
         _ = Keychain.appPassword
@@ -51,6 +58,9 @@ final class Sentry {
         guard let cameraID = UserDefaults.standard.string(forKey: Preference.cameraID) else {
             return stopWatching(.setupNeeded)
         }
+        guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized else {
+            return stopWatching(.cameraAccessNeeded)
+        }
         let keptAwake = SystemActivity.isKeptAwake
         if watcher != nil {
             // Typing does not disarm, because that is what an intruder does. Letting the Mac sleep
@@ -65,8 +75,7 @@ final class Sentry {
 
     private func arm(cameraID: String) {
         // Looked up through `Cameras.available`, so a saved ID can never resolve to an iPhone.
-        guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized,
-              let device = Cameras.available.first(where: { $0.uniqueID == cameraID })
+        guard let device = Cameras.available.first(where: { $0.uniqueID == cameraID })
         else { setStatus(.cameraUnavailable); return }
 
         do {
@@ -83,35 +92,65 @@ final class Sentry {
         }
     }
 
+    /// Asks for camera access, or opens its Privacy setting once macOS has stopped asking.
+    func requestCameraAccess() {
+        NSApp.activate()
+        if AVCaptureDevice.authorizationStatus(for: .video) == .notDetermined {
+            Task {
+                _ = await AVCaptureDevice.requestAccess(for: .video)
+                tick()
+            }
+        } else {
+            NSWorkspace.shared.open(Cameras.privacySettings)
+        }
+    }
+
     private func intruded(_ jpeg: Data) {
+        let firstSighting = !alert.isShowing
         setStatus(.intruded)
-        let filename: String
+        let photo: URL?
         do {
-            let url = try Evidence.save(jpeg)
-            filename = url.lastPathComponent
-            logger.notice("Intrusion photographed: \(url.path, privacy: .public)")
+            photo = try Evidence.save(jpeg)
+            lastPhoto = photo
+            logger.notice("Intrusion photographed: \(photo?.path ?? "", privacy: .public)")
         } catch {
-            filename = "Intrusion.jpg"
+            photo = nil
             logger.error("Could not save the intrusion photo: \(error)")
         }
         alert.show()
-        emailIfEnabled(jpeg, filename: filename)
+        if firstSighting && UserDefaults.standard.bool(forKey: Preference.lockScreen) {
+            // A few seconds first, so the intruder reads the screen before the login window hides it.
+            Task {
+                try? await Task.sleep(for: .seconds(3))
+                ScreenLock.lockNow()
+            }
+        }
+        sendAlerts(jpeg, photo: photo)
     }
 
-    private func emailIfEnabled(_ jpeg: Data, filename: String) {
+    private func sendAlerts(_ jpeg: Data, photo: URL?) {
         let defaults = UserDefaults.standard
-        guard defaults.bool(forKey: Preference.emailAlerts),
-              let address = defaults.string(forKey: Preference.gmailAddress), !address.isEmpty,
-              let password = Keychain.appPassword
-        else { return }
+        let macName = Host.current().localizedName ?? "your Mac"
 
-        let email = Email.intrusion(to: address, photo: jpeg, filename: filename, macName: Host.current().localizedName ?? "your Mac")
+        if defaults.bool(forKey: Preference.emailAlerts),
+           let address = defaults.string(forKey: Preference.gmailAddress), !address.isEmpty,
+           let password = Keychain.appPassword {
+            let email = Email.intrusion(to: address, photo: jpeg, filename: photo?.lastPathComponent ?? "Intrusion.jpg", macName: macName)
+            deliver("email") { try await Gmail.send(email, from: address, appPassword: password) }
+        }
+        if defaults.bool(forKey: Preference.iMessageAlerts),
+           let handle = defaults.string(forKey: Preference.iMessageHandle), !handle.isEmpty {
+            deliver("iMessage") { try await IMessage.send("Caffeguard: someone sat down at \(macName).", photo: photo, to: handle) }
+        }
+    }
+
+    private func deliver(_ channel: String, _ send: @escaping () async throws -> Void) {
         Task { [logger] in
             do {
-                try await Gmail.send(email, from: address, appPassword: password)
-                logger.notice("Emailed \(filename, privacy: .public)")
+                try await send()
+                logger.notice("Sent the \(channel, privacy: .public) alert")
             } catch {
-                logger.error("Could not email \(filename, privacy: .public): \(error.localizedDescription, privacy: .public)")
+                logger.error("Could not send the \(channel, privacy: .public) alert: \(error.localizedDescription, privacy: .public)")
             }
         }
     }
@@ -133,6 +172,7 @@ extension Sentry.Status {
         switch self {
         case .setupNeeded: "Choose a Camera in Settings"
         case .paused: "Paused"
+        case .cameraAccessNeeded: "Camera Access Needed"
         case .waitingForKeepAwake: "Waiting for Caffeination"
         case .waitingForIdle: "Arms When You’re Away"
         case .cameraUnavailable: "Camera Unavailable"
@@ -143,7 +183,7 @@ extension Sentry.Status {
 
     var symbol: String {
         switch self {
-        case .setupNeeded, .paused, .cameraUnavailable: "shield.slash"
+        case .setupNeeded, .paused, .cameraAccessNeeded, .cameraUnavailable: "shield.slash"
         case .waitingForKeepAwake, .waitingForIdle: "shield"
         case .watching: "shield.fill"
         case .intruded: "exclamationmark.shield.fill"
