@@ -4,6 +4,9 @@ import SwiftUI
 struct SettingsView: View {
     @AppStorage(Preference.cameraID) private var cameraID: String?
     @AppStorage(Preference.idleMinutes) private var idleMinutes = Preference.defaultIdleMinutes
+    @AppStorage(Preference.intrusionScreenStyle) private var intrusionScreenStyle = IntrusionScreenStyle.redWarning
+    @AppStorage(Preference.intrusionMessage) private var intrusionMessage = IntrusionScreenConfiguration.defaultMessage
+    @AppStorage(Preference.intrusionUnlockTrigger) private var intrusionUnlockTrigger = IntrusionUnlockTrigger.doubleClickOrAnyKey
     @AppStorage(Preference.emailAlerts) private var emailAlerts = false
     @AppStorage(Preference.gmailAddress) private var gmailAddress = ""
     @State private var appPassword = Keychain.appPassword ?? ""
@@ -29,6 +32,28 @@ struct SettingsView: View {
                 }
             } footer: {
                 Text("Caffeguard arms while something keeps your Mac awake, like caffeinate or Amphetamine, and it has had no input for this long.")
+            }
+
+            Section {
+                Picker("Screen style", selection: $intrusionScreenStyle) {
+                    ForEach(IntrusionScreenStyle.allCases) { style in
+                        Text(style.title).tag(style)
+                    }
+                }
+                TextField("Message", text: $intrusionMessage, axis: .vertical)
+                    .lineLimit(2...4)
+                Picker("Start verification", selection: $intrusionUnlockTrigger) {
+                    ForEach(IntrusionUnlockTrigger.allCases) { trigger in
+                        Text(trigger.title).tag(trigger)
+                    }
+                }
+                IntrusionScreenPreview(configuration: IntrusionScreenConfiguration(
+                    style: intrusionScreenStyle, message: intrusionMessage, unlockTrigger: intrusionUnlockTrigger
+                ))
+            } header: {
+                Text("Intrusion Screen")
+            } footer: {
+                Text("Leave the message blank to use the default. Touch ID or your Mac password is always required to dismiss the alert.")
             }
 
             Section {
@@ -60,8 +85,7 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 440)
-        .fixedSize()
+        .frame(width: 480, height: 640)
     }
 
     private func sendTest() {

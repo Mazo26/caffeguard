@@ -2,8 +2,8 @@ import AppKit
 import LocalAuthentication
 import SwiftUI
 
-/// Covers every display in red, above the menu bar and full-screen apps, until the owner
-/// unlocks it with Touch ID or the Mac's password.
+/// Covers every display with the chosen screen, above the menu bar and full-screen apps,
+/// until the owner unlocks it with Touch ID or the Mac's password.
 final class IntrusionAlert {
     var onUnlock: () -> Void = {}
     var isShowing: Bool { !windows.isEmpty }
@@ -14,14 +14,16 @@ final class IntrusionAlert {
 
     func show() {
         guard windows.isEmpty else { return }
+        let configuration = IntrusionScreenConfiguration(defaults: .standard)
         previousApp = NSWorkspace.shared.frontmostApplication
         windows = NSScreen.screens.map { screen in
-            let window = AlertWindow(contentRect: screen.frame, styleMask: .borderless, backing: .buffered, defer: false)
+            let window = IntrusionAlertWindow(contentRect: screen.frame, styleMask: .borderless, backing: .buffered, defer: false)
             window.level = .screenSaver
             window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
             window.isReleasedWhenClosed = false
-            window.onKey = { [weak self] in self?.unlock() }
-            window.contentView = NSHostingView(rootView: IntrusionAlertView { [weak self] in self?.unlock() })
+            window.unlockTrigger = configuration.unlockTrigger
+            window.onUnlockRequest = { [weak self] in self?.unlock() }
+            window.contentView = NSHostingView(rootView: IntrusionScreenView(configuration: configuration))
             window.setFrame(screen.frame, display: true)
             window.orderFrontRegardless()
             return window
@@ -64,34 +66,21 @@ final class IntrusionAlert {
     }
 }
 
-/// A borderless window that can take keyboard focus, so a key press starts unlocking.
-private final class AlertWindow: NSWindow {
-    var onKey: () -> Void = {}
+/// Routes input before the hosting view can consume it. Input only requests authentication.
+final class IntrusionAlertWindow: NSWindow {
+    var unlockTrigger: IntrusionUnlockTrigger = .doubleClickOrAnyKey
+    var onUnlockRequest: () -> Void = {}
     override var canBecomeKey: Bool { true }
-    override func keyDown(with event: NSEvent) { onKey() }
-}
 
-private struct IntrusionAlertView: View {
-    let unlock: () -> Void
-
-    var body: some View {
-        VStack(spacing: 24) {
-            Image(systemName: "exclamationmark.shield.fill")
-                .font(.system(size: 128))
-            Text("Intrusion Detected")
-                .font(.system(size: 64, weight: .bold))
-            Text("This Mac is protected. A photo has been taken.")
-                .font(.title)
-            Label("Click or press any key to unlock with Touch ID or your password.", systemImage: "touchid")
-                .font(.title3)
-                .opacity(0.7)
-                .padding(.top, 24)
+    override func sendEvent(_ event: NSEvent) {
+        if event.type == .keyDown {
+            if !event.isARepeat, unlockTrigger.accepts(.keyPress) { onUnlockRequest() }
+            return
         }
-        .foregroundStyle(.white)
-        .multilineTextAlignment(.center)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.red)
-        .contentShape(.rect)
-        .onTapGesture(perform: unlock)
+        if event.type == .leftMouseDown, event.clickCount == 2 {
+            if unlockTrigger.accepts(.doubleClick) { onUnlockRequest() }
+            return
+        }
+        super.sendEvent(event)
     }
 }

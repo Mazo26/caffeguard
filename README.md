@@ -8,7 +8,7 @@ app, so it does not go to sleep. You walk away. Someone sits down at it.
 Caffeguard catches them. It lives in your menu bar as a little shield. When your Mac is
 kept awake and nobody has touched it for a few minutes, Caffeguard starts watching through
 your webcam. If someone looks at the camera, it takes their photo, saves it, and turns every
-screen bright red.
+screen into an intrusion alert. The default screen is bright red.
 
 That's it.
 
@@ -29,9 +29,9 @@ That's it.
 2. Walk away.
 3. After 5 minutes of nobody touching the Mac, the shield in the menu bar fills in. It is
    watching now.
-4. If someone sits down and looks at the screen, they get a red screen and you get their
+4. If someone sits down and looks at the screen, they get an intrusion alert and you get their
    photo in `~/Pictures/Caffeguard`.
-5. The red screen only goes away with your fingerprint (Touch ID) or your Mac password.
+5. The alert only goes away with your fingerprint (Touch ID) or your Mac password.
    Until then it keeps watching: if that person runs off and someone else sits down later,
    you get a photo of them too.
 
@@ -39,13 +39,25 @@ Things to know:
 
 - Typing does not turn it off, because an intruder would type too. Letting the Mac sleep
   again turns it off, and so does unchecking **Enabled** in the menu.
-- It will catch you too when you come back. Unlock the red screen with your fingerprint,
+- It will catch you too when you come back. Unlock the alert with your fingerprint,
   or uncheck **Enabled** before you leave the Mac awake and walk off.
 - One person sitting there is one photo. A new photo needs the seat to be empty for 30
   seconds first.
-- After you unlock the red screen, it waits another quiet period before it watches again.
+- After you unlock the alert, it waits another quiet period before it watches again.
 - Change the camera or the waiting time in **Settings…** from the menu bar shield.
 - The camera is off unless it is watching. It never records video.
+
+## Intrusion screen
+
+Open **Settings… → Intrusion Screen** to choose **Red Warning**, **Dark Warning**, or
+**Minimal**, and write the message shown to an intruder. Leave the message blank to
+use the default. The preview updates as you edit, and your choices are saved for the
+next alert on every connected display.
+
+Choose how to start verification: **Double-click**, **Any key**, or **Double-click or
+any key** (the default). A single click does not start verification. Touch ID or your
+Mac password is always required to dismiss the alert; cancelling verification keeps
+the alert visible.
 
 ## Email alerts
 
