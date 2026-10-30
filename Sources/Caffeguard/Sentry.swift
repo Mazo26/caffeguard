@@ -21,11 +21,18 @@ final class Sentry {
     private let logger = Logger(subsystem: "com.hamzaplojovic.Caffeguard", category: "Sentry")
 
     private var idleDelay: TimeInterval {
-        TimeInterval(UserDefaults.standard.integer(forKey: Preference.idleMinutes) * 60)
+        TimeInterval(max(1, UserDefaults.standard.integer(forKey: Preference.idleSeconds)))
     }
 
     init() {
-        UserDefaults.standard.register(defaults: [Preference.idleMinutes: Preference.defaultIdleMinutes])
+        let defaults = UserDefaults.standard
+        // 1.0.5 and earlier stored the delay in minutes. Migrate before registering defaults,
+        // because a registered default would make the new key look already set.
+        if defaults.object(forKey: Preference.idleSeconds) == nil, defaults.object(forKey: "idleMinutes") != nil {
+            defaults.set(defaults.integer(forKey: "idleMinutes") * 60, forKey: Preference.idleSeconds)
+            defaults.removeObject(forKey: "idleMinutes")
+        }
+        defaults.register(defaults: [Preference.idleSeconds: Preference.defaultIdleSeconds])
         alert.onUnlock = { [weak self] in self?.stopWatching(.waitingForIdle) }
         // Read once at launch: if macOS asks to allow keychain access after an update,
         // the owner is here to answer, not hidden behind the red screen.
@@ -33,7 +40,8 @@ final class Sentry {
         Task {
             while true {
                 tick()
-                try? await Task.sleep(for: .seconds(5))
+                // The tolerance lets macOS fold this wake-up into others, so a check costs almost nothing.
+                try? await Task.sleep(for: .seconds(1), tolerance: .milliseconds(500))
             }
         }
     }
@@ -50,8 +58,8 @@ final class Sentry {
             if !keptAwake && !alert.isShowing { stopWatching(.waitingForKeepAwake) }
             return
         }
-        guard keptAwake else { status = .waitingForKeepAwake; return }
-        guard SystemActivity.idleTime >= idleDelay else { status = .waitingForIdle; return }
+        guard keptAwake else { setStatus(.waitingForKeepAwake); return }
+        guard SystemActivity.idleTime >= idleDelay else { setStatus(.waitingForIdle); return }
         arm(cameraID: cameraID)
     }
 
@@ -59,7 +67,7 @@ final class Sentry {
         // Looked up through `Cameras.available`, so a saved ID can never resolve to an iPhone.
         guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized,
               let device = Cameras.available.first(where: { $0.uniqueID == cameraID })
-        else { status = .cameraUnavailable; return }
+        else { setStatus(.cameraUnavailable); return }
 
         do {
             let watcher = try IntrusionWatcher(device: device) { [weak self] jpeg in
@@ -67,16 +75,16 @@ final class Sentry {
             }
             watcher.start()
             self.watcher = watcher
-            status = .watching
+            setStatus(.watching)
             logger.info("Armed with \(device.localizedName, privacy: .public)")
         } catch {
-            status = .cameraUnavailable
+            setStatus(.cameraUnavailable)
             logger.error("Could not open \(device.localizedName, privacy: .public): \(error)")
         }
     }
 
     private func intruded(_ jpeg: Data) {
-        status = .intruded
+        setStatus(.intruded)
         let filename: String
         do {
             let url = try Evidence.save(jpeg)
@@ -111,7 +119,12 @@ final class Sentry {
     private func stopWatching(_ newStatus: Status) {
         watcher?.stop()
         watcher = nil
-        status = newStatus
+        setStatus(newStatus)
+    }
+
+    /// Ticks run every second; assigning an unchanged status would still redraw the menu bar.
+    private func setStatus(_ newStatus: Status) {
+        if status != newStatus { status = newStatus }
     }
 }
 

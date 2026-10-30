@@ -27,7 +27,7 @@ That's it.
    reasons, like a video call or music, count too, because the Mac stays unlocked then
    as well.
 2. Walk away.
-3. After 5 minutes of nobody touching the Mac, the shield in the menu bar fills in. It is
+3. After 5 minutes (you can change this) of nobody touching the Mac, the shield in the menu bar fills in. It is
    watching now.
 4. If someone sits down and looks at the screen, they get a red screen and you get their
    photo in `~/Pictures/Caffeguard`.
@@ -44,7 +44,10 @@ Things to know:
 - One person sitting there is one photo. A new photo needs the seat to be empty for 30
   seconds first.
 - After you unlock the red screen, it waits another quiet period before it watches again.
-- Change the camera or the waiting time in **Settings…** from the menu bar shield.
+- Change the camera or the waiting time in **Settings…** from the menu bar shield. The
+  waiting time can be anything from 1 second up, under **Custom**.
+- **Settings → Intrusion Screen** has 20 themes for the red screen (Terminal, Crime Scene,
+  Judgy Cat, Royal Decree and more), and you can put your own picture behind it.
 - The camera is off unless it is watching. It never records video.
 
 ## Email alerts
