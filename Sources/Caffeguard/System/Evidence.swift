@@ -1,8 +1,15 @@
 import AppKit
 
-/// Intrusion photos, saved to ~/Pictures/Caffeguard.
+/// Intrusion photos, saved to the chosen folder or ~/Pictures/Caffeguard by default.
 enum Evidence {
-    static let folder = URL.picturesDirectory.appending(path: "Caffeguard", directoryHint: .isDirectory)
+    static let defaultFolder = URL.picturesDirectory.appending(path: "Caffeguard", directoryHint: .isDirectory)
+
+    static func folder(defaults: UserDefaults = .standard) -> URL {
+        guard let path = defaults.string(forKey: Preference.photoFolderPath), !path.isEmpty else {
+            return defaultFolder
+        }
+        return URL(filePath: path, directoryHint: .isDirectory)
+    }
 
     private static let fileDate: DateFormatter = {
         let formatter = DateFormatter()
@@ -10,7 +17,8 @@ enum Evidence {
         return formatter
     }()
 
-    static func save(_ jpeg: Data) throws -> URL {
+    static func save(_ jpeg: Data, defaults: UserDefaults = .standard) throws -> URL {
+        let folder = folder(defaults: defaults)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         let url = folder.appending(path: "Intrusion \(fileDate.string(from: .now)).jpg")
         try jpeg.write(to: url)
@@ -18,6 +26,7 @@ enum Evidence {
     }
 
     static func showInFinder() {
+        let folder = folder()
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         NSWorkspace.shared.open(folder)
     }

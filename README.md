@@ -30,7 +30,7 @@ That's it.
 3. After 5 minutes of nobody touching the Mac, the shield in the menu bar fills in. It is
    watching now.
 4. If someone sits down and looks at the screen, they get a red screen and you get their
-   photo in `~/Pictures/Caffeguard`.
+   photo in `~/Pictures/Caffeguard`, or the folder you choose in **Settings…**.
 5. The red screen only goes away with your fingerprint (Touch ID) or your Mac password.
    Until then it keeps watching: if that person runs off and someone else sits down later,
    you get a photo of them too.
@@ -44,7 +44,9 @@ Things to know:
 - One person sitting there is one photo. A new photo needs the seat to be empty for 30
   seconds first.
 - After you unlock the red screen, it waits another quiet period before it watches again.
-- Change the camera or the waiting time in **Settings…** from the menu bar shield.
+- Change the camera, waiting time, or photo destination folder in **Settings…** from the
+  menu bar shield. Changing the folder only affects new photos; existing photos stay
+  where they are. **Show Photos in Finder** opens your selected folder.
 - The camera is off unless it is watching. It never records video.
 
 ## Email alerts

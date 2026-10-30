@@ -4,6 +4,7 @@ import SwiftUI
 struct SettingsView: View {
     @AppStorage(Preference.cameraID) private var cameraID: String?
     @AppStorage(Preference.idleMinutes) private var idleMinutes = Preference.defaultIdleMinutes
+    @AppStorage(Preference.photoFolderPath) private var photoFolderPath = ""
     @AppStorage(Preference.emailAlerts) private var emailAlerts = false
     @AppStorage(Preference.gmailAddress) private var gmailAddress = ""
     @State private var appPassword = Keychain.appPassword ?? ""
@@ -29,6 +30,26 @@ struct SettingsView: View {
                 }
             } footer: {
                 Text("Caffeguard arms while something keeps your Mac awake, like caffeinate or Amphetamine, and it has had no input for this long.")
+            }
+
+            Section {
+                LabeledContent("Save photos to") {
+                    Text(verbatim: photoFolderPath.isEmpty ? Evidence.defaultFolder.path : photoFolderPath)
+                        .lineLimit(2)
+                        .truncationMode(.middle)
+                        .textSelection(.enabled)
+                        .help(photoFolderPath.isEmpty ? Evidence.defaultFolder.path : photoFolderPath)
+                }
+                HStack {
+                    Button("Choose Folder…", action: choosePhotoFolder)
+                    Spacer()
+                    Button("Use Default") { photoFolderPath = "" }
+                        .disabled(photoFolderPath.isEmpty)
+                }
+            } header: {
+                Text("Photos")
+            } footer: {
+                Text("New photos are saved here. Existing photos stay in their original folder.")
             }
 
             Section {
@@ -62,6 +83,20 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .frame(width: 440)
         .fixedSize()
+    }
+
+    private func choosePhotoFolder() {
+        let panel = NSOpenPanel()
+        panel.title = "Choose Photo Folder"
+        panel.prompt = "Choose"
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.canCreateDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.directoryURL = Evidence.folder()
+        if panel.runModal() == .OK, let folder = panel.url {
+            photoFolderPath = folder.path
+        }
     }
 
     private func sendTest() {
