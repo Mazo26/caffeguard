@@ -2,8 +2,9 @@
 
 # Caffeguard
 
-You keep your Mac awake with `caffeinate`, Amphetamine, Raycast or any other keep-awake
-app, so it does not go to sleep. You walk away. Someone sits down at it.
+You keep your Mac awake with `caffeinate`, Amphetamine, KeepingYouAwake, Lungo, Theine,
+Caffeinated or Raycast Coffee, so it does not go to sleep. You walk away. Someone sits
+down at it.
 
 Caffeguard catches them. It lives in your menu bar as a little shield. When your Mac is
 kept awake and nobody has touched it for a few minutes, Caffeguard starts watching through
@@ -55,6 +56,28 @@ Things to know:
   new photos; existing photos stay where they are. **Show Photos in Finder** opens the
   selected folder, and the last photo is read from there when the app starts.
 - The camera is off unless it is watching. It never records video.
+
+## Keep-awake apps
+
+Caffeguard detects active macOS requests to prevent system or display sleep, so there
+is nothing to configure for each keep-awake app. These include:
+
+- `caffeinate`, built into macOS.
+- [Amphetamine](https://apps.apple.com/app/amphetamine/id937984704).
+- [KeepingYouAwake](https://keepingyouawake.app/).
+- [Lungo](https://sindresorhus.com/lungo).
+- [Theine](https://appahead.studio/apps/theine/).
+- [Caffeinated by Yugen](https://apps.apple.com/app/id1362171212).
+- [Raycast Coffee](https://www.raycast.com/mooxl/coffee).
+
+Start a keep-awake session that prevents system or display sleep. KeepingYouAwake and
+Raycast Coffee use `caffeinate` underneath and are detected through that process.
+Paused or ended sessions do not count. Apps can be installed outside `/Applications`
+or run through helpers; their names and locations do not need to match a list.
+
+For Raycast Coffee, enable **Prevent system sleep** or **Prevent display sleep**.
+Disk-only assertions and tools that only simulate mouse or keyboard input are not
+supported triggers. Simulated input can also reset the idle timer, delaying arming.
 
 ## iMessage alerts
 
